@@ -1,7 +1,7 @@
 const KEY_NAME = 'TABLINK';
 const watchers = {};
 const subscribers = new Set();
-const currentTabId = crypto.getRandomValues(new Uint16Array(5)).join('-');
+const currentTabId = (crypto || msCrypto).getRandomValues(new Uint16Array(5)).join('-');
 
 window.addEventListener('storage', event);
 
