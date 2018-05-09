@@ -1,5 +1,6 @@
 const KEY_NAME = 'TABLINK';
 const watchers = {};
+const subscribers = new Set();
 const currentTabId = crypto.getRandomValues(new Uint16Array(5)).join('-');
 
 window.addEventListener('storage', event);
@@ -31,6 +32,11 @@ function on(type, cb) {
 	return () => watchers[type].delete(cb);
 }
 
+function subscribe(cb) {
+	subscribers.add(cb);
+	return () => subscribers.delete(cb);
+}
+
 function event(storageEvent) {
 	if (storageEvent.key === KEY_NAME && storageEvent.newValue !== null) {
 		let {tabId, type, message} = JSON.parse(storageEvent.newValue);
@@ -44,10 +50,13 @@ function event(storageEvent) {
 		watchers[type].forEach(cb => {
 			cb(message);
 		});
+
+		subscribers.forEach(cb => cb(type, message));
 	}
 }
 
 export default {
 	dispatch,
 	on,
+	subscribe,
 }

@@ -57,3 +57,29 @@ let unsubscribe = tablink.on('DISPLAY_LOGOUT_MODAL', (payload) => {
 // to stop listening
 unsubscribe();
 ```
+
+### Subscribing to all events
+
+```javascript
+tablink.subscribe(listener)
+```
+
+**`listener`** _(Function)_  
+The callback to be invoked any time an action has been dispatched
+
+Adds a change listener. It will be called any time any action is dispatched.
+To unsubscribe, invoke the function returned by subscribe.
+
+**Example:**
+```javascript
+let unsubscribe = tablink.subscribe((type, payload) => {
+	switch (type) {
+		case 'TEST':
+			// When a type of TEST is dispatched...
+			break;
+	}
+});
+
+// To unsubscribe
+unsubscribe();
+```
