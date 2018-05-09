@@ -16,8 +16,6 @@ the event will also be handled in the current tab doing the dispatching.
 tablink.dispatch(type, payload[, includeOwnTab]);
 ```
 
-**Parameters:**
-
 **`type`**  
 A case-sensitive string representing the event type.
 
@@ -38,8 +36,6 @@ tablink.dispatch('DISPLAY_LOGOUT_MODAL', {type: 'SESSION_TIMEOUT'}, true);
 ```javascript
 tablink.on(type, listener);
 ```
-
-**Parameters:**
 
 **`type`**  
 A case-sensitive string representing the event type to listen for.
