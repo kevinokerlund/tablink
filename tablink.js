@@ -4,14 +4,6 @@ const currentTabId = crypto.getRandomValues(new Uint16Array(5)).join('-');
 
 window.addEventListener('storage', event);
 
-function addWatcher(type, watcher) {
-	if (!watchers[type]) {
-		watchers[type] = [];
-	}
-
-	watchers[type].push(watcher);
-}
-
 function dispatch(type, message, includeOwnTab = false) {
 	let data = {tabId: currentTabId, type, message};
 
@@ -30,14 +22,13 @@ function dispatch(type, message, includeOwnTab = false) {
 }
 
 function on(type, cb) {
-	addWatcher(type, cb);
-	return {
-		stop: stop.bind(null, type, cb),
+	if (!watchers[type]) {
+		watchers[type] = new Set();
 	}
-}
 
-function stop(type, cb) {
-	watchers[type] = watchers[type].filter(callback => callback !== cb);
+	watchers[type].add(cb);
+
+	return () => watchers[type].delete(cb);
 }
 
 function event(storageEvent) {
@@ -59,5 +50,4 @@ function event(storageEvent) {
 export default {
 	dispatch,
 	on,
-	stop,
 }

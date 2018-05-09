@@ -40,33 +40,20 @@ tablink.dispatch('DISPLAY_LOGOUT_MODAL', {
 tablink.on(type, listener);
 ```
 
-**`type`**  
+**`type`**_(String)_  
 A case-sensitive string representing the event type to listen for.
 
-**`listener`**  
+**`listener`** _(Function)_  
 A callback function that receives the `payload` as its argument.  
+
+To remove the listener, invoke the function returned by `on`.
 
 **Example:**
 ```javascript
-tablink.on('DISPLAY_LOGOUT_MODAL', (payload) => {
-  logout();
+let unsubscribe = tablink.on('DISPLAY_LOGOUT_MODAL', (payload) => {
   showModal(payload.type);
 });
-```
 
----
-
-### Removing an event listener
-There are two ways to remove an event listener:
-
-Option 1: Pass the event type and same function reference to the `stop` function:
-```javascript
-tablink.on(type, listener);
-tablink.stop(type, listener);
-```
-
-Option 2: Store the listener to a variable, and later call `.stop()`. 
-```javascript
-let listener = tablink.on(type, handler);
-listener.stop();
+// to stop listening
+unsubscribe();
 ```
