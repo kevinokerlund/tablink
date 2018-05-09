@@ -47,9 +47,7 @@ function event(storageEvent) {
 			return;
 		}
 
-		watchers[type].forEach(cb => {
-			cb(message);
-		});
+		(watchers[type] || []).forEach(cb => cb(message));
 
 		subscribers.forEach(cb => cb(type, message));
 	}
