@@ -1,0 +1,28 @@
+{
+  "name": "tablink",
+  "version": "1.0.0",
+  "description": "Dispatch data and events to other browser tabs on the same domain.",
+  "main": "dist/tablink.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "microbundle tablink.js"
+  },
+  "keywords": [
+    "dispatch",
+    "browser-tab",
+    "event",
+    "intercom",
+    "emit",
+    "broadcast",
+    "localStorage"
+  ],
+  "files": [
+    "dist",
+    "tablink.js"
+  ],
+  "author": "Kevin Okerlund",
+  "license": "MIT",
+  "dependencies": {
+    "microbundle": "^0.4.4"
+  }
+}
