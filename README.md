@@ -17,12 +17,15 @@ tablink.dispatch(type, payload[, includeOwnTab]);
 ```
 
 **Parameters:**
-> **`type`**  
-> A case-sensitive string representing the event type.  
-> **`payload`**  
-> A string or an object of data. Anything that can be sent through `JSON.stringify/parse`.  
-> **`includeOwnTab`**  
-> Optional boolean. If `true`, the event will also be handled on the current tab.  
+
+**`type`**  
+A case-sensitive string representing the event type.
+
+**`payload`**  
+A string or an object of data. Anything that can be sent through `JSON.stringify/parse`.
+
+**`includeOwnTab`**  
+Optional boolean. If `true`, the event will also be handled on the current tab.
 
 **Example:**
 ```javascript
@@ -37,10 +40,12 @@ tablink.on(type, listener);
 ```
 
 **Parameters:**
-> **`type`**  
-> A case-sensitive string representing the event type to listen for.  
-> **`listener`**  
-> A callback function that receives the `payload` as its argument.  
+
+**`type`**  
+A case-sensitive string representing the event type to listen for.
+
+**`listener`**  
+A callback function that receives the `payload` as its argument.  
 
 **Example:**
 ```javascript
