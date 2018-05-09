@@ -27,7 +27,9 @@ Optional boolean. If `true`, the event will also be handled on the current tab.
 
 **Example:**
 ```javascript
-tablink.dispatch('DISPLAY_LOGOUT_MODAL', {type: 'SESSION_TIMEOUT'}, true);
+tablink.dispatch('DISPLAY_LOGOUT_MODAL', {
+  type: 'SESSION_TIMEOUT'
+}, true);
 ```
 
 ---
