@@ -84,6 +84,8 @@ export function channel(channelName) {
 		},
 		on() {
 		},
+		dispatch() {
+		},
 	}
 }
 
