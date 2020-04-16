@@ -1,60 +1,92 @@
-const KEY_NAME = 'TABLINK';
-const watchers = {};
-const subscribers = new Set();
-const currentTabId = (crypto || msCrypto).getRandomValues(new Uint16Array(5)).join('-');
+const localStorage = window.localStorage;
+const sessionStorage = window.sessionStorage;
+const crypto = (window.crypto || window.msCrypto);
+const storageName = 'TABLINK';
 
-window.addEventListener('storage', event);
+let db = null;
+let currentTabId = null;
 
-function dispatch(type, message, includeOwnTab = false) {
-	let data = {tabId: currentTabId, type, message};
+loadStore();
+registerTab();
 
-	if (includeOwnTab) {
-		delete data.tabId;
+window.addEventListener('storage', (storageEvent) => {
+	const { key } = storageEvent;
+	if (key === storageName) {
+		loadStore();
+	}
+});
+
+window.addEventListener('focus', () => {
+	makeMaster();
+});
+
+window.addEventListener('unload', () => {
+	delete db.byId[currentTabId];
+	db.allIds = Object.keys(db.byId);
+	if (db.masterTab === currentTabId) {
+		db.masterTab = db.allIds[db.allIds.length - 1];
+	}
+	write();
+});
+
+function registerTab() {
+	const storedId = sessionStorage.getItem(storageName);
+	currentTabId = storedId ? storedId : crypto.getRandomValues(new Uint16Array(3)).join('-');
+	if (!storedId) {
+		sessionStorage.setItem(storageName, currentTabId);
 	}
 
-	data = JSON.stringify(data);
+	db.masterTab = currentTabId;
+	db.byId[currentTabId] = {
+		id: currentTabId,
+		channels: [],
+	};
+	db.allIds = Object.keys(db.byId);
 
-	if (includeOwnTab) {
-		event({key: KEY_NAME, newValue: data});
+	write();
+}
+
+function loadStore() {
+	const stored = localStorage.getItem(storageName);
+	db = stored ? JSON.parse(stored) : {
+		masterTab: null,
+		channelMasters: {},
+		allIds: [],
+		byId: {},
+	};
+}
+
+function makeMaster() {
+	const tab = db.byId[currentTabId];
+	db.masterTab = currentTabId;
+	tab.channels.forEach(channel => {
+		db.channelMasters[channel] = currentTabId;
+	});
+	write();
+}
+
+function write() {
+	localStorage.setItem(storageName, JSON.stringify(db));
+}
+
+export function channel(channelName) {
+	const tab = db.byId[currentTabId];
+	if (!tab.channels.includes(channelName)) {
+		tab.channels.push(channelName);
 	}
+	db.channelMasters[channelName] = currentTabId;
 
-	window.localStorage.setItem(KEY_NAME, data);
-	localStorage.removeItem(KEY_NAME);
-}
+	write();
 
-function on(type, cb) {
-	if (!watchers[type]) {
-		watchers[type] = new Set();
-	}
-
-	watchers[type].add(cb);
-
-	return () => watchers[type].delete(cb);
-}
-
-function subscribe(cb) {
-	subscribers.add(cb);
-	return () => subscribers.delete(cb);
-}
-
-function event(storageEvent) {
-	if (storageEvent.key === KEY_NAME && storageEvent.newValue !== null) {
-		let {tabId, type, message} = JSON.parse(storageEvent.newValue);
-
-		// The following condition exists for IE10 (not supported),
-		// but just in case other browsers have the same bug
-		if (currentTabId === tabId) {
-			return;
-		}
-
-		(watchers[type] || []).forEach(cb => cb(message));
-
-		subscribers.forEach(cb => cb(type, message));
+	return {
+		isMaster() {
+			return db.channelMasters[channelName] === currentTabId;
+		},
+		on() {
+		},
 	}
 }
 
 export default {
-	dispatch,
-	on,
-	subscribe,
+	channel,
 }
