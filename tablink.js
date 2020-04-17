@@ -1,94 +1,59 @@
 const localStorage = window.localStorage;
 const sessionStorage = window.sessionStorage;
 const crypto = (window.crypto || window.msCrypto);
-const storageName = 'TABLINK';
+const storageName = 'tabLink';
 
-let db = null;
-let currentTabId = null;
+const storedId = sessionStorage.getItem(storageName);
+const currentTabId = storedId ? storedId : crypto.getRandomValues(new Uint16Array(3)).join('-');
+if (!storedId) {
+	sessionStorage.setItem(storageName, currentTabId);
+}
 
-loadStore();
-registerTab();
+ping();
+
+if (document.hasFocus()) {
+	dispatch('request-master');
+}
 
 window.addEventListener('storage', (storageEvent) => {
-	const { key } = storageEvent;
-	if (key === storageName) {
-		loadStore();
+	const { key, newValue } = storageEvent;
+	if (!key.startsWith(storageName) || !newValue) {
+		return;
+	}
+
+	const { dispatcher, recipients, internalCommand, payload } = JSON.parse(newValue);
+
+	if (recipients.length && !recipients.includes(currentTabId)) {
+		return;
+	}
+
+	switch (internalCommand) {
+		case 'ping':
+			pong(dispatcher);
+			break;
+		case 'pong':
+			break;
+		case 'request-master':
+			break;
 	}
 });
 
-window.addEventListener('focus', () => {
-	makeMaster();
-});
-
-window.addEventListener('unload', () => {
-	delete db.byId[currentTabId];
-	db.allIds = Object.keys(db.byId);
-	if (db.masterTab === currentTabId) {
-		db.masterTab = db.allIds[db.allIds.length - 1];
-	}
-	write();
-});
-
-function registerTab() {
-	const storedId = sessionStorage.getItem(storageName);
-	currentTabId = storedId ? storedId : crypto.getRandomValues(new Uint16Array(3)).join('-');
-	if (!storedId) {
-		sessionStorage.setItem(storageName, currentTabId);
-	}
-
-	db.masterTab = currentTabId;
-	db.byId[currentTabId] = {
-		id: currentTabId,
-		channels: [],
-	};
-	db.allIds = Object.keys(db.byId);
-
-	write();
+function ping() {
+	dispatch('ping');
 }
 
-function loadStore() {
-	const stored = localStorage.getItem(storageName);
-	db = stored ? JSON.parse(stored) : {
-		masterTab: null,
-		channelMasters: {},
-		allIds: [],
-		byId: {},
-	};
+function pong(tabId) {
+	dispatch('pong', null, [ tabId ]);
 }
 
-function makeMaster() {
-	const tab = db.byId[currentTabId];
-	db.masterTab = currentTabId;
-	tab.channels.forEach(channel => {
-		db.channelMasters[channel] = currentTabId;
+function dispatch(internalCommand, payload = {}, recipients = []) {
+	const data = JSON.stringify({
+		dispatcher: currentTabId,
+		recipients,
+		internalCommand,
+		payload,
 	});
-	write();
-}
 
-function write() {
-	localStorage.setItem(storageName, JSON.stringify(db));
-}
-
-export function channel(channelName) {
-	const tab = db.byId[currentTabId];
-	if (!tab.channels.includes(channelName)) {
-		tab.channels.push(channelName);
-	}
-	db.channelMasters[channelName] = currentTabId;
-
-	write();
-
-	return {
-		isMaster() {
-			return db.channelMasters[channelName] === currentTabId;
-		},
-		on() {
-		},
-		dispatch() {
-		},
-	}
-}
-
-export default {
-	channel,
+	localStorage.setItem(storageName, data);
+	localStorage.removeItem(storageName);
 }
